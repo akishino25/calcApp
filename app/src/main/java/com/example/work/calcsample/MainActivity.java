@@ -6,12 +6,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,19 +51,45 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0; i<memoList.length; i++){
             Map<String, String> calcMap = new HashMap<String, String>();
             calcMap.put("Memo", memoList[i]);
-            calcMap.put("calcResult", calcResult[i]);
+            calcMap.put("CalcResult", calcResult[i]);
             this.calcList.add(calcMap);
         }
 
         adapter = new SimpleAdapter(this, calcList,
                 android.R.layout.simple_list_item_2,
-                new String[]{"Memo", "calcResult"},
+                new String[]{"Memo", "CalcResult"},
                 new int[]{android.R.id.text1, android.R.id.text2});
 
         ListView listView = (ListView) findViewById(R.id.calcList);
         listView.setAdapter(adapter);
-        
-        //Newボタン押下
+
+        //listViewクリックリスナー
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent,
+                                    View view, int position, long id) {
+                Log.d(TAG, "Listener is clicked!");
+                ListView listView = (ListView)parent;
+                Map<String, String> calcMap = (Map<String, String>) listView.getItemAtPosition(position);
+                String memo = calcMap.get("Memo");
+                String calcResult = calcMap.get("CalcResult");
+                Log.d(TAG, "Memo:" +memo +", CalcResult:" +calcResult);
+
+                //取得した計算式の文字列から、入力数値と演算子をパースする
+                HashMap<String, ArrayList<String>> parseMap = parseCalcResult(calcResult);
+                ArrayList<String> numbers = parseMap.get("numbers");
+                ArrayList<String> simbols = parseMap.get("simbols");
+
+                for(String s : numbers){
+                    Log.d(TAG, s);
+                }
+                for(String s : simbols){
+                    Log.d(TAG, s);
+                }
+            }
+        });
+
+        //Newボタンクリックリスナー
         findViewById(R.id.newButton)
                 .setOnClickListener(new View.OnClickListener(){
                     @Override
@@ -106,14 +136,45 @@ public class MainActivity extends AppCompatActivity {
     private void addCalcListView(String memo, String calcResult){
         Map<String, String> m = new HashMap<String, String>();
         m.put("Memo", memo);
-        m.put("calcResult", calcResult);
+        m.put("CalcResult", calcResult);
         this.calcList.add(m);
         this.adapter = new SimpleAdapter(MainActivity.this, this.calcList,
                 android.R.layout.simple_list_item_2,
-                new String[]{"Memo", "calcResult"},
+                new String[]{"Memo", "CalcResult"},
                 new int[]{android.R.id.text1, android.R.id.text2});
         ListView listView = (ListView) findViewById(R.id.calcList);
         listView.setAdapter(this.adapter);
+    }
+
+    /**
+     * 文字列の計算式を入力数値と演算子に正規表現で分離する
+     * TODO:数式の左辺に小数が使われると正しく分離できない
+     * @param calcResultStr　計算式の文字列
+     * @return "numbers"と"simbols"をキーにもつ2つのArrayListを持つHashMap
+     */
+    private HashMap<String, ArrayList<String>> parseCalcResult(String calcResultStr){
+        //calcResultStr = "100×22＋33－1000=2200.0"; //テスト用Input
+        HashMap<String, ArrayList<String>> parseMap = new HashMap<String, ArrayList<String>>();
+
+        //イコールより左を取得
+        String calcLeft = calcResultStr.split("=", 0)[0];
+        Log.d(TAG, calcLeft);
+
+        //数字以外で分割して、入力数値の配列を取得
+        String[] numbers = calcLeft.split("\\D");
+        ArrayList<String> numbersArray = new ArrayList<String>(Arrays.<String>asList(numbers));
+
+        //数字で分割して、演算子の配列を取得
+        String[] simbols = calcLeft.split("\\d");
+        ArrayList<String> simbolsArray = new ArrayList<String>();
+        for(int i=0; i<simbols.length; i++){
+            if(!simbols[i].isEmpty()){
+                simbolsArray.add(simbols[i]);
+            }
+        }
+        parseMap.put("numbers", numbersArray);
+        parseMap.put("simbols", simbolsArray);
+        return parseMap;
     }
 
 }
