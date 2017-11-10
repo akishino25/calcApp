@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">CalcSample</string>
+    <string name="mainTitle">計算器サンプル</string>
+    <string name="newButton">New</string>
+    <string name="res">=</string>
+
+    <string name="detailTitle">詳細画面</string>
+    <string name="inputText">数値を入力</string>
+    <string name="inputSimbol">演算子を入力</string>
+    <string name="addPartButton">追加</string>
+    <string name="confirmButton">確定</string>
+
+    <string-array name="simbol_items">
+        <item>＋</item>
+        <item>－</item>
+        <item>×</item>
+        <item>÷</item>
+    </string-array>
+</resources>
